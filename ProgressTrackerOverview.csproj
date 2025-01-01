@@ -58,6 +58,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Z:\RUMBLE\RUMBLE_install\MelonLoader\Il2CppAssemblies\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>Z:\RUMBLE\RUMBLE_install\MelonLoader\Il2CppAssemblies\Unity.TextMeshPro.dll</HintPath>
+    </Reference>
     <Reference Include="RumbleModdingAPI">
       <HintPath>Z:\RUMBLE\RUMBLE_install\Mods\RumbleModdingAPI.dll</HintPath>
     </Reference>

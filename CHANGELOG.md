@@ -1,3 +1,6 @@
+# Version 1.0.1
+- Fixed mod crashing after loading into a different scene
+
 # Version 1.0.0
 - Created
 

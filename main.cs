@@ -11,7 +11,7 @@ namespace ProgressTrackerOverview
     public static class BuildInfo
     {
         public const string ModName = "ProgressTrackerOverview";
-        public const string ModVersion = "1.0.0";
+        public const string ModVersion = "1.0.1";
         public const string Description = "Adds an overview of your total GC/BP progress on the gear market's progress tracker";
         public const string Author = "Kalamart";
         public const string Company = "";
@@ -38,14 +38,16 @@ namespace ProgressTrackerOverview
         public override void OnSceneWasLoaded(int buildIndex, string sceneName)
         {
             isInGym = (sceneName == "Gym");
-            if (!initialized && isInGym)
-            {
-                Calls.onMapInitialized += InitOverview;
-            }
+            initialized = false;
         }
 
         public override void OnFixedUpdate()
         {
+            if (!initialized && isInGym)
+            {
+                InitOverview();
+                initialized = true;
+            }
             UpdateProgressOverview();
         }
 
@@ -89,8 +91,6 @@ namespace ProgressTrackerOverview
             bpobj_only.colorGradient = new VertexGradient(Color.white);
 
             Log("Initialized Overview objects");
-            initialized = true;
-            UpdateProgressOverview();
         }
 
         /**

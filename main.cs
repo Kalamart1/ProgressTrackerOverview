@@ -72,6 +72,9 @@ namespace ProgressTrackerOverview
             BPGCtext = parent.transform.GetChild(0).gameObject;
             BPtext = parent.transform.GetChild(1).gameObject;
             GCtext = parent.transform.GetChild(2).gameObject;
+            // when only one of the two texts appears, it's made bigger
+            BPtext.transform.localScale = new Vector3(1.5f, 1.5f, 1.5f);
+            GCtext.transform.localScale = new Vector3(1.5f, 1.5f, 1.5f);
             Object.Destroy(parent.transform.GetChild(3).gameObject); // destroy the brown rectangle behind it
             bpobj_only = BPtext.transform.GetChild(0).gameObject.GetComponent<TextMeshPro>();
             gcobj_only = GCtext.transform.GetChild(0).gameObject.GetComponent<TextMeshPro>();

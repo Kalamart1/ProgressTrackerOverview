@@ -7,8 +7,8 @@ using ProgressTrackerOverview; // The namespace of your mod class
 [assembly: MelonInfo(typeof(ProgressTrackerOverview.MyMod), ProgressTrackerOverview.BuildInfo.ModName, ProgressTrackerOverview.BuildInfo.ModVersion, ProgressTrackerOverview.BuildInfo.Author)]
 [assembly: VerifyLoaderVersion(0, 6, 5, true)]
 [assembly: MelonGame("Buckethead Entertainment", "RUMBLE")]
-[assembly: MelonColor(255, 195, 0, 255)]
-[assembly: MelonAuthorColor(201, 20, 65, 255)]
+[assembly: MelonColor(255, 255, 31, 90)]
+[assembly: MelonAuthorColor(255, 255, 31, 90)]
 
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information

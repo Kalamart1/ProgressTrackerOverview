@@ -5,13 +5,18 @@ using RumbleModdingAPI;
 using Il2CppRUMBLE.Economy;
 using Il2CppRUMBLE.Economy.Interactables;
 using Il2CppRUMBLE.Players;
+using static RumbleModdingAPI.Calls;
+using Il2CppRUMBLE.Interactions;
+using static RumbleModdingAPI.Calls.GameObjects.Gym.Logic.HeinhouserProducts.Leaderboard;
+using static RumbleModdingAPI.Calls.GameObjects.Gym.Scene.GymProduction.SubStaticGroupBuildings.GearMarket;
+using Il2CppRUMBLE.Interactions.InteractionBase;
 
 namespace ProgressTrackerOverview
 {
     public static class BuildInfo
     {
         public const string ModName = "ProgressTrackerOverview";
-        public const string ModVersion = "1.0.1";
+        public const string ModVersion = "1.0.2";
         public const string Description = "Adds an overview of your total GC/BP progress on the gear market's progress tracker";
         public const string Author = "Kalamart";
         public const string Company = "";
@@ -21,7 +26,7 @@ namespace ProgressTrackerOverview
     {
         // variables
         bool initialized = false;
-        bool isInGym = false;
+        bool needUpdate = false;
         static ProgressTracker progressTracker;
         static CatalogHandler handler;
         GameObject BPGCtext;
@@ -37,18 +42,23 @@ namespace ProgressTrackerOverview
         }
         public override void OnSceneWasLoaded(int buildIndex, string sceneName)
         {
-            isInGym = (sceneName == "Gym");
+            needUpdate = (sceneName == "Gym");
             initialized = false;
         }
 
         public override void OnFixedUpdate()
         {
-            if (!initialized && isInGym)
+            if (needUpdate)
             {
-                InitOverview();
-                initialized = true;
+
+                if (!initialized)
+                {
+                    InitOverview();
+                    initialized = true;
+                }
+                UpdateProgressOverview();
+                needUpdate = false;
             }
-            UpdateProgressOverview();
         }
 
         /**
@@ -90,7 +100,34 @@ namespace ProgressTrackerOverview
             bpobj.colorGradient = new VertexGradient(Color.white);
             bpobj_only.colorGradient = new VertexGradient(Color.white);
 
+            GameObject itemHighlightWindow = Calls.GameObjects.Gym.Scene.GymProduction.SubStaticGroupBuildings.GearMarket.ItemHighlightWindow.GetGameObject();
+            CollisionHandler trackButton = itemHighlightWindow.transform.GetChild(6).GetChild(3).gameObject.GetComponent<CollisionHandler>();
+            GameObject messageScreen = Calls.GameObjects.Gym.Scene.GymProduction.SubStaticGroupBuildings.GearMarket.MessageScreen.GetGameObject();
+            InteractionTouch proceedButton = messageScreen.transform.GetChild(2).GetChild(1).gameObject.GetComponent<InteractionTouch>();
+            proceedButton.onEndInteraction.AddListener((System.Action)proceedButtonPressed);
+            trackButton.onTriggerEnter.AddListener((System.Action<Collider>)trackButtonPressed);
+
             Log("Initialized Overview objects");
+        }
+
+        /**
+         * <summary>
+         * Called when an item has been acquired via the Gear Market ("Proceed" button)
+         * </summary>
+         */
+        public void proceedButtonPressed()
+        {
+            needUpdate = true;
+        }
+
+        /**
+         * <summary>
+         * Called when an item tracking status has been changed ("Track" or "Stop tracking" button)
+         * </summary>
+         */
+        public void trackButtonPressed(Collider collider)
+        {
+            needUpdate = true;
         }
 
         /**
@@ -101,10 +138,6 @@ namespace ProgressTrackerOverview
          */
         public void UpdateProgressOverview()
         {
-            if (!initialized || !isInGym)
-            {
-                return;
-            }
             int totalBPreq = 0;
             int totalGCreq = 0;
             foreach (string item in progressTracker.presentingItems)

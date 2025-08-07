@@ -5,10 +5,6 @@ using RumbleModdingAPI;
 using Il2CppRUMBLE.Economy;
 using Il2CppRUMBLE.Economy.Interactables;
 using Il2CppRUMBLE.Players;
-using static RumbleModdingAPI.Calls;
-using Il2CppRUMBLE.Interactions;
-using static RumbleModdingAPI.Calls.GameObjects.Gym.Logic.HeinhouserProducts.Leaderboard;
-using static RumbleModdingAPI.Calls.GameObjects.Gym.Scene.GymProduction.SubStaticGroupBuildings.GearMarket;
 using Il2CppRUMBLE.Interactions.InteractionBase;
 
 namespace ProgressTrackerOverview
@@ -16,7 +12,7 @@ namespace ProgressTrackerOverview
     public static class BuildInfo
     {
         public const string ModName = "ProgressTrackerOverview";
-        public const string ModVersion = "1.0.2";
+        public const string ModVersion = "1.0.3";
         public const string Description = "Adds an overview of your total GC/BP progress on the gear market's progress tracker";
         public const string Author = "Kalamart";
         public const string Company = "";
@@ -36,26 +32,62 @@ namespace ProgressTrackerOverview
         TextMeshPro gcobj_only;
         TextMeshPro bpobj;
         TextMeshPro gcobj;
+
+        /**
+        * <summary>
+        * Log to console.
+        * </summary>
+        */
         public static void Log(string msg)
         {
             MelonLogger.Msg(msg);
         }
-        public override void OnSceneWasLoaded(int buildIndex, string sceneName)
+
+        /**
+         * <summary>
+         * Called when the mod is loaded into the game
+         * </summary>
+         */
+        public override void OnLateInitializeMelon()
         {
-            needUpdate = (sceneName == "Gym");
-            initialized = false;
+            Calls.onMapInitialized += OnMapInitialized;
         }
 
+        /**
+        * <summary>
+        * Called when the scene has finished loading.
+        * </summary>
+        */
+        public override void OnSceneWasLoaded(int buildIndex, string sceneName)
+        {
+            initialized = (sceneName != "Gym");
+            needUpdate = false;
+        }
+
+        /**
+        * <summary>
+        * Called when the full map is initialized, and RMAPI calls can be used safely.
+        * </summary>
+        */
+        public void OnMapInitialized()
+        {
+            if (!initialized)
+            {
+                InitOverview();
+                initialized = true;
+                needUpdate = true;
+            }
+        }
+
+        /**
+         * <summary>
+         * Called 50 times per second, used for frequent updates.
+         * </summary>
+         */
         public override void OnFixedUpdate()
         {
             if (needUpdate)
             {
-
-                if (!initialized)
-                {
-                    InitOverview();
-                    initialized = true;
-                }
                 UpdateProgressOverview();
                 needUpdate = false;
             }
@@ -69,11 +101,19 @@ namespace ProgressTrackerOverview
         private void InitOverview()
         {
             // create new text object (copy from the progress text inside of the tracker)
-            GameObject ptobj = Calls.GameObjects.Gym.Scene.GymProduction.SubStaticGroupBuildings.ProgressTracker.GetGameObject();
+            GameObject ptobj = Calls.GameObjects.Gym.LOGIC.Heinhouserproducts
+                .ProgressTracker
+                .GetGameObject();
             progressTracker = ptobj.GetComponent<ProgressTracker>();
             handler = Calls.GameObjects.DDOL.GameInstance.Initializable.CatalogHandler.GetGameObject().GetComponent<CatalogHandler>();
-            Transform OGparent = ptobj.transform.GetChild(1).GetChild(1).GetChild(0); // the parent obj in the tracker
-            GameObject parent = GameObject.Instantiate(OGparent.gameObject);
+            GameObject OGparent = Calls.GameObjects.Gym.LOGIC.Heinhouserproducts
+                .ProgressTracker
+                .ProgressPanel
+                .ButtonUILayouts
+                .Requirements
+                .GetGameObject();
+
+            GameObject parent = GameObject.Instantiate(OGparent);
             parent.SetActive(true);
             parent.transform.SetParent(ptobj.transform);
             parent.name = "Overview";
@@ -100,12 +140,21 @@ namespace ProgressTrackerOverview
             bpobj.colorGradient = new VertexGradient(Color.white);
             bpobj_only.colorGradient = new VertexGradient(Color.white);
 
-            GameObject itemHighlightWindow = Calls.GameObjects.Gym.Scene.GymProduction.SubStaticGroupBuildings.GearMarket.ItemHighlightWindow.GetGameObject();
-            CollisionHandler trackButton = itemHighlightWindow.transform.GetChild(6).GetChild(3).gameObject.GetComponent<CollisionHandler>();
-            GameObject messageScreen = Calls.GameObjects.Gym.Scene.GymProduction.SubStaticGroupBuildings.GearMarket.MessageScreen.GetGameObject();
-            InteractionTouch proceedButton = messageScreen.transform.GetChild(2).GetChild(1).gameObject.GetComponent<InteractionTouch>();
+            InteractionTouch trackButton = Calls.GameObjects.Gym.LOGIC.Heinhouserproducts
+                .Gearmarket
+                .Itemhighlightwindow
+                .TrackButton
+                .GetGameObject()
+                .GetComponent<InteractionTouch>();
+            InteractionTouch proceedButton = Calls.GameObjects.Gym.LOGIC.Heinhouserproducts
+                .Gearmarket
+                .Messagescreen
+                .TwoButtonLayout
+                .ButtonTwo
+                .GetGameObject()
+                .GetComponent<InteractionTouch>();
             proceedButton.onEndInteraction.AddListener((System.Action)proceedButtonPressed);
-            trackButton.onTriggerEnter.AddListener((System.Action<Collider>)trackButtonPressed);
+            trackButton.onEndInteraction.AddListener((System.Action)trackButtonPressed);
 
             Log("Initialized Overview objects");
         }
@@ -125,7 +174,7 @@ namespace ProgressTrackerOverview
          * Called when an item tracking status has been changed ("Track" or "Stop tracking" button)
          * </summary>
          */
-        public void trackButtonPressed(Collider collider)
+        public void trackButtonPressed()
         {
             needUpdate = true;
         }
